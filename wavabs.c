@@ -2,6 +2,7 @@
 #include "tratamento.h"
 
 void tratar_argumentos(int argc, char **argv, FILE *ENTRADA, FILE *SAIDA);
+void abs_audio(Audio_t *audio);
 
 int main(int argc, char **argv)
 {
@@ -65,4 +66,10 @@ void tratar_argumentos(int argc, char **argv, FILE *ENTRADA, FILE *SAIDA)
 			exit(1);
 		}
 	}
+}
+
+void abs_audio(Audio_t *audio)
+{
+	for (int i = 0; i < audio->tamanho; i++)
+       audio->dados[i] = abs(audio->dados[i]);
 }

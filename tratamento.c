@@ -210,11 +210,6 @@ void mixar_audios(Audio_t *audioA, Audio_t *audioB)
 		audioA->dados[i] = soma_com_limite(audioA->dados[i], audioB->dados[i], VOLMAX);
 }
 
-void abs_audio(Audio_t *audio)
-{
-	for (int i = 0; i < audio->tamanho; i++)
-       audio->dados[i] = abs(audio->dados[i]);
-}
 
 void fechar_streams(FILE *ENTRADA, FILE *SAIDA)
 {
@@ -222,4 +217,60 @@ void fechar_streams(FILE *ENTRADA, FILE *SAIDA)
 		fclose(ENTRADA);
 	if (SAIDA != stdout)
 		fclose(SAIDA);
+}
+
+void tratar_audios(int argc, char **argv, FILE *ENTRADA, Audio_t *audio, Audio_t *apendice)
+{
+	int i = 1;
+	// Procura o primeiro argumento que não seja -o [file]
+	while (i < argc)
+	{
+		if (!strcmp("-o", argv[i]))
+		{
+			i++;
+		}
+		else
+		{
+			ENTRADA = freopen(argv[i], "r", ENTRADA);
+			if (!ENTRADA)
+			{
+				fprintf(stderr, "Nao foi possivel abrir o arquivo");
+				free(audio);
+				free(apendice);
+				exit(1);
+			}
+			break;
+		}
+		i++;
+	}
+
+	ler_audio_wav(ENTRADA, audio);
+
+	i++;
+	// Continuo a busca por todos os argumentos que não são '-o'
+	while (i < argc)
+	{
+		if (!strcmp("-o", argv[i]))
+		{
+			i++;
+		}
+		else
+		{
+			ENTRADA = freopen(argv[i], "r", ENTRADA);
+			if (!ENTRADA)
+			{
+				fprintf(stderr, "Nao foi possivel abrir o arquivo");
+				free(audio->dados);
+				free(audio);
+				free(apendice);
+				exit(1);
+			}
+
+			ler_audio_wav(ENTRADA, apendice);
+			concatatenar_audios(audio, apendice);
+			free(apendice->dados);
+		}
+
+		i++;
+	}
 }

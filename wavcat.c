@@ -2,7 +2,8 @@
 #include "tratamento.h"
 
 int confere_nr_argumentos(int argc, int sel_saida);
-void tratar_argumentos(int argc, char **argv, FILE *ENTRADA, FILE *SAIDA, int *sel_saida);
+void tratar_argumentos(int argc, char **argv, FILE *SAIDA, int *sel_saida);
+
 
 int main(int argc, char **argv)
 {
@@ -11,7 +12,7 @@ int main(int argc, char **argv)
 	Audio_t *audio, *apendice;
 	int sel_saida = 0;
 
-	tratar_argumentos(argc, argv, ENTRADA, SAIDA, &sel_saida);
+	tratar_argumentos(argc, argv, SAIDA, &sel_saida);
 
 	// Checa o numero de argumentos, devem existir no mínimo 2 argumentos validos
 	if (!confere_nr_argumentos(argc, sel_saida))
@@ -40,57 +41,8 @@ int main(int argc, char **argv)
 
 	/*===================================================*/
 
-	int i = 1;
-	// Procura o primeiro argumento que não seja -o [file]
-	while (i < argc)
-	{
-		if (!strcmp("-o", argv[i]))
-		{
-			i++;
-		}
-		else
-		{
-			ENTRADA = freopen(argv[i], "r", ENTRADA);
-			if (!ENTRADA)
-			{
-				fprintf(stderr, "Nao foi possivel abrir o arquivo");
-				free(audio);
-				free(apendice);
-				exit(1);
-			}
-			break;
-		}
-		i++;
-	}
-
-	ler_audio_wav(ENTRADA, audio);
-
-	i++;
-	while (i < argc)
-	{
-		if (!strcmp("-o", argv[i]))
-		{
-			i++;
-		}
-		else
-		{
-			ENTRADA = freopen(argv[i], "r", ENTRADA);
-			if (!ENTRADA)
-			{
-				fprintf(stderr, "Nao foi possivel abrir o arquivo");
-				free(audio->dados);
-				free(audio);
-				free(apendice);
-				exit(1);
-			}
-
-			ler_audio_wav(ENTRADA, apendice);
-			concatatenar_audios(audio, apendice);
-			free(apendice->dados);
-		}
-
-		i++;
-	}
+	// Trata corretamente os audios e aplica neles a função de concatenação
+	tratar_audios(argc, argv, ENTRADA, audio, apendice);
 
 	envia_audio(SAIDA, audio);
 
@@ -99,7 +51,7 @@ int main(int argc, char **argv)
 	free(audio->dados);
 	free(audio);
 	free(apendice);
-	
+
 	return 0;
 }
 
@@ -110,38 +62,29 @@ int confere_nr_argumentos(int argc, int sel_saida)
 	return 1;
 }
 
-void tratar_argumentos(int argc, char **argv, FILE *ENTRADA, FILE *SAIDA, int *sel_saida)
+void tratar_argumentos(int argc, char **argv, FILE *SAIDA, int *sel_saida)
 {
-    int opt;
-    while ((opt = getopt(argc, argv, "i:o:")) != -1)
-    {
-        switch (opt)
-        {
+	int opt;
+	while ((opt = getopt(argc, argv, "o:")) != -1)
+	{
+		switch (opt)
+		{
 
-        // Entrada
-        case 'i':
-            ENTRADA = freopen(optarg, "r", ENTRADA);
-            if (!ENTRADA)
-            {
-                fprintf(stderr, "Não foi possível encontrar o arquivo\n");
-                exit(1);
-            }
-            break;
+		// Saída
+		case 'o':
+			*sel_saida = 1;
+			SAIDA = freopen(optarg, "w+", SAIDA);
+			if (!SAIDA)
+			{
+				fprintf(stderr, "Erro ao criar saída de dados\n");
+				exit(1);
+			}
+			break;
 
-        // Saída
-        case 'o':
-            *sel_saida = 1;
-            SAIDA = freopen(optarg, "w+", SAIDA);
-            if (!SAIDA)
-            {
-                fprintf(stderr, "Erro ao criar saída de dados\n");
-                exit(1);
-            }
-            break;
-
-        default:
-            fprintf(stderr, "Usage: ./wavmix file1 file2 ... filen -o [FILE] \n");
-            exit(1);
-        }
-    }
+		default:
+			fprintf(stderr, "Usage: ./wavmix file1 file2 ... filen -o [FILE] \n");
+			exit(1);
+		}
+	}
 }
+
