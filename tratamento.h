@@ -5,7 +5,6 @@
 #include <string.h>
 
 // Realiza uma operação com os valores limites de +- limite
-// int op_com_limite(int op, int16_t a, int16_t b, int16_t lim);
 int16_t soma_com_limite(int16_t a, int16_t b, int16_t lim);
 int16_t mult_com_limite(int16_t a, float b, int16_t lim);
 
@@ -45,5 +44,8 @@ void abs_audio(Audio_t *audio);
 
 // Fecha os arquivos de streams
 void fechar_streams(FILE *ENTRADA, FILE *SAIDA);
+
+
+void tratar_audios(int argc, char **argv, FILE *ENTRADA, Audio_t *audio, Audio_t *apendice);
 
 #endif
